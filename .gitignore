@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.db
+*.pyc
+__pycache__/
+.env
+*.log
+uploads/
+data/conversations/
+sessions/
