@@ -245,50 +245,6 @@ Full API docs: visit `/docs` after starting the server (Swagger UI)
 
 ---
 
-## 设计决策 / Design Decisions
-
-### 为什么 Bridge 直连 DeepSeek 而不是通过框架？
-
-Convey 深度依赖 DeepSeek V4 的 thinking mode（reasoning_content）和流式 tool_calls。直接封装 `deepseek.py` 可以完整控制协议细节——包括 reasoning_content 跨轮次回传、tool_call delta 合并、以及 finish_reason 精确判断。这些特性是通用 LLM 框架（LangChain/LiteLLM）难以完美适配的。
-
-### 为什么用 SQLite 而不是 PostgreSQL？
-
-Convey 设计为轻量级单机部署。SQLite 零配置、零运维，通过 WAL 模式支持并发读。对于自托管场景（单用户到数百用户），SQLite 完全够用且部署成本最低。
-
-Convey is designed for lightweight single-machine deployment. SQLite requires zero configuration and zero ops, with concurrent reads via WAL mode. For self-hosted scenarios (single user to hundreds), SQLite is sufficient with the lowest deployment cost.
-
-### 为什么用 HMAC Token 而不是 JWT？
-
-HMAC-SHA256 token 是自包含的（包含 email + 过期时间 + 签名），无需数据库查询即可验证。相比 JWT，实现更简单，不需要额外依赖。
-
-HMAC-SHA256 tokens are self-contained (email + expiry + signature), verifiable without database queries. Compared to JWT, the implementation is simpler with no extra dependencies.
-
-### Tool Loop 设计：为什么 Bridge 层不调工具？
-
-Tool Loop 的核心环路在 Engine（chat_handler），Bridge 只管 DeepSeek 协议。Bridge 通过增强 SSE done 事件报告 `finish_reason` 和 `tool_calls`，Engine 解析后执行工具、回填结果、再调 Bridge。这种分层让协议层保持纯净，工具扩展不影响 LLM 对接。
-
----
-
-## 收获与反思 / What I Learned
-
-**中文：**
-
-1. **SSE 流式渲染的坑** — 前端必须正确处理 SSE 事件边界（空行分隔），否则会出现消息截断或重复渲染
-2. **E2E 测试不能只靠 curl** — curl 每次拿新 token，不覆盖浏览器中过期 token 的场景。必须包含"过期 token"用例
-3. **DeepSeek V4 thinking mode 的 protocol tax** — reasoning_content 必须在多轮 tool calling 中回传，否则 API 直接 400。这不是 bug 而是协议要求
-4. **Tool Loop 的上下文保持** — 第二轮工具调用时如果用户消息从 messages 中消失，LLM 会失去对话上下文。解决方法是显式在 compressed history 中保留当前 user 消息
-5. **轻量架构的选择** — SQLite + FastAPI + React 的组合，让一个全职开发者能在短时间内完成可用的全栈产品
-
-**English:**
-
-1. **SSE streaming gotchas** — Frontend must correctly handle SSE event boundaries (blank-line separators), otherwise messages truncate or render twice
-2. **E2E tests need more than curl** — curl gets fresh tokens each time, missing the expired-token-in-browser scenario. Must include "expired token" test cases
-3. **DeepSeek V4 thinking mode protocol tax** — reasoning_content must be passed back across multi-round tool calls, otherwise the API returns 400. This is a protocol requirement, not a bug
-4. **Tool loop context preservation** — If the user message disappears from the messages list in round 2 of tool calls, the LLM loses conversation context. The fix: explicitly retain the current user message in compressed history
-5. **Lightweight architecture choices** — SQLite + FastAPI + React enables shipping a functional full-stack product in a short time
-
----
-
 ## 许可证 / License
 
 [MIT](LICENSE)
