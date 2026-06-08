@@ -21,17 +21,6 @@ DeepSeek Chat is not "yet another ChatGPT wrapper." It's an **algorithmic labora
 
 **这些决策直接影响聊天质量，但没有"标准答案"。** DeepSeek Chat 存在的意义就是通过对照实验找到更好的答案。
 
-### 和 Convey App 的关系
-
-```
-deepseek-chat (Web 实验场)              Convey App (iOS/macOS 产品)
-══════════════════════════              ══════════════════════════
-探索"怎么做最好"                       交付"最好的体验"
-有 Planner/Tool Router 做对照实验       只取实验验证过的最优方案
-可以失败、可以推倒重来                  稳定优先
-面向算法验证速度                        面向用户体验质量
-```
-
 ---
 
 ## 七大研究方向 / Seven Research Tracks
